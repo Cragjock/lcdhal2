@@ -1,5 +1,6 @@
 
 #include "mylcd.h"
+#include <cassert>
 
 using namespace std;
 
@@ -247,7 +248,11 @@ void lcddisplay::set_bmp()
 {
 /// https://www.quinapalus.com/hd44780udg.html
 /******** BITMAP SET UP ************************/
+    /// turn items off as the store bitmap moves the cursor one space per write
+
     lcd_send_command(LCD_DISPLAYCONTROL | LCD_DISPLAYOFF | LCD_CURSOROFF | LCD_BLINKOFF); // x08 command
+
+    /// bank 0 ?
     uint8_t bmLeft[]= {8,12,10,9,10,12,8,0};
     uint8_t bmMiddle[]={0,0,31,14,4,14,31,0};
     uint8_t bmRight[]={2,6,10,18,10,6,2,0};
@@ -257,20 +262,45 @@ void lcddisplay::set_bmp()
     uint8_t bmCheck[] = {0,1,3,22,28,8,0,0};
     uint8_t bmXXX[] = {0,27,14,4,12,27,0,0};
 
+    vector<int> vbmLeft= {8,12,10,9,10,12,8,0};
+    vector<char> vbmMiddle={0,0,31,14,4,14,31,0};
+    vector<uint8_t> vbmRight={2,6,10,18,10,6,2,0};
+    vector<uint8_t> vbmSatLeft={0,20,21,21,31,21,20,20};
+    vector<uint8_t> vbmSatright= {0,5,21,21,31,21,5,5};
+    vector<uint8_t> vbmhand= {4,14,30,31,31,31,14,14};
+    vector<uint8_t> vbmCheck = {0,1,3,22,28,8,0,0};
+    vector<uint8_t> vbmXXX = {0,27,14,4,12,27,0,0};
+
+    /// bank 1 ?
     uint8_t bmHGempty[] = { 31,17,10,4,10,17,31,0};
 	uint8_t bmHGfilling[] = { 31,17,10,4,14,31,31,0};
 	uint8_t bmHGFull[] = {31,31,14,4,14,31,31,0};
 	uint8_t bmHPacOpen[] = {14,31,28,24,28,31,14,0};
 	uint8_t bmHPacClosed[] = {14,31,31,31,31,31,14,0};
 
-    lcd_store_custom_bitmap(1, bmLeft); // store
-    lcd_store_custom_bitmap(2, bmMiddle); // store
+	uint8_t bmToRight[] = {0,20,22,23,22,20,0,0};
+	uint8_t bmToLeft[] = {0,5,13,29,13,5,0,0};
+	uint8_t bmToUp[] = {0,0,4,14,31,0,31,0};
+	uint8_t bmToDown[] = {31,0,31,14,4,0,0,0};
+
+    vector<char> vbmToRight = {0,20,22,23,22,20,0,0};
+	vector<int> vbmToLeft = {0,5,13,29,13,5,0,0};
+	vector<int> vbmToUp = {0,0,4,14,31,0,31,0};
+	vector<int> vbmToDown = {31,0,31,14,4,0,0,0};
+
+	lcd_store_custom_bitmap(1, vbmToRight); // store
+	lcd_store_custom_bitmap(2, vbmToLeft); // stor
+
+
+    //lcd_store_custom_bitmap(1, bmLeft); // store
+    //lcd_store_custom_bitmap(2, bmMiddle); // store
     lcd_store_custom_bitmap(3, bmRight); // store
     lcd_store_custom_bitmap(4, bmSatLeft); // store
     lcd_store_custom_bitmap(5, bmSatright); // store
     //lcd_store_custom_bitmap(6, bmhand); // store
     //lcd_store_custom_bitmap(7, bmCheck); // store
     //lcd_store_custom_bitmap(0, bmXXX); // store
+
     lcd_store_custom_bitmap(6, bmHGempty); // store
     lcd_store_custom_bitmap(7, bmHGfilling); // store
     lcd_store_custom_bitmap(0, bmHGFull); // store
@@ -668,9 +698,12 @@ void lcddisplay::lcd_send_byteBITSET(uint8_t b)
 }
 /******************************/
 /******************************/
+
+/*************************** has been TEMPALTIZED
 void lcddisplay::lcd_store_custom_bitmap(uint8_t location, uint8_t bitmap[])
 {
-    location &= 0x7; // we only have 8 locations 0-7
+    assert(location >=0);
+    location &= 0x7; // we only have 8 locations, 0-7
     lcd_send_command(LCD_SETCGRAMADDR | (location << 3));
     int i;
     for (i = 0; i < 8; i++)
@@ -678,6 +711,21 @@ void lcddisplay::lcd_store_custom_bitmap(uint8_t location, uint8_t bitmap[])
         lcd_send_data(bitmap[i]);
     }
 }
+
+void lcddisplay::lcd_store_custom_bitmap(uint8_t location, vector<char>bitmap)
+{
+    assert(location >=0);
+    location &= 0x7; // we only have 8 locations, 0-7
+    lcd_send_command(LCD_SETCGRAMADDR | (location << 3));
+    int i;
+    for (i = 0; i < 8; i++)
+    {
+        lcd_send_data(bitmap[i]);
+    }
+}
+
+**********************************/
+
 void lcddisplay::sleep_ns(long nanoseconds)
 {
     struct timespec time0, time1;
@@ -689,7 +737,8 @@ void lcddisplay::sleep_ns(long nanoseconds)
 
 unsigned char lcddisplay::flip1(unsigned char x)
 {
-    const vector<char> test_table = {
+    const vector<char> test_table =
+    {
         0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
         0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
         0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,

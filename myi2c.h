@@ -22,7 +22,6 @@
 #include <byteswap.h>       // placeholder to remember for ADS1015 code
 #include "mcp23008.h"
 
-
 #define swab16 __swab16 // http://lxr.free-electrons.com/source/include/linux/swab.h#L6
 #define LBYTE(LB) (LB & 0x0FF)
 #define HBYTE(HB) ((HB & 0xF00)>>8)
@@ -40,7 +39,6 @@
 
 #define READ_BUF_G         0x00
 #define READ_BUF_XL        0x08
-
 
 class I2CBus
 {
@@ -72,9 +70,6 @@ class I2CBus
         int device_write_block(int reg_request, int rd_size, unsigned char* readbuffer);
         virtual int device_read(int reg_address);
         virtual int device_write(uint8_t command_reg, uint8_t data);
-
-
 };
-
 
 #endif // MY_I2C_H

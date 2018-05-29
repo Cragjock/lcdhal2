@@ -76,6 +76,10 @@ class lcddisplay
         bool display(T message);
 
     private:
+        template<typename T>
+        void lcd_store_custom_bitmap(uint8_t location, T bitmap);
+
+
         //I2CBus* myI2C; /// make this i2c*
         std::unique_ptr<I2CBus> myI2C;
         //int set_term(); std::unique_ptr<mcp23008> LCDBus;
@@ -107,7 +111,8 @@ class lcddisplay
         void set_eeprom_bmp();
 
         void lcd_write_custom_bitmap(uint8_t location);
-        void lcd_store_custom_bitmap(uint8_t location, uint8_t bitmap[]);
+        //void lcd_store_custom_bitmap(uint8_t location, uint8_t bitmap[]);
+        //void lcd_store_custom_bitmap(uint8_t location, std::vector<char>);
         void lcd_set_backlight(uint8_t state);
         void lcd_backlight_on(void);
         void lcd_backlight_off(void);
@@ -162,6 +167,19 @@ class lcddisplay
 	{
         lcd_write(data);
 	    return *this;
+	}
+
+	template<typename T>
+	void lcddisplay::lcd_store_custom_bitmap(uint8_t location, T bitmap)
+	{
+        //assert(location >=0);
+        location &= 0x7; // we only have 8 locations, 0-7
+        lcd_send_command(LCD_SETCGRAMADDR | (location << 3));
+        //int i;
+        for (auto i = 0; i < 8; i++)
+        {
+            lcd_send_data(bitmap[i]);
+        }
 	}
 
 
