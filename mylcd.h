@@ -9,14 +9,33 @@
 #include <fstream>
 #include <vector>
 #include <iterator>
-#include "HALlcd.h"
+#include <chrono>		//chrono::milliseconds(1000); need scope chrono
+#include <thread>		// for chrono sleep this_thread::sleep_for(chrono::seconds(1));
+#include <bitset>
+
+#include "lcdDefine.h"
+#include "myi2c.h"
 #include "scolors.h"
+
+static const uint8_t ROW_OFFSETS[] = {0, 0x40, 0x14, 0x54};
+/// http://web.alfredstate.edu/faculty/weimandn/lcd/lcd_addressing/lcd_addressing_index.html
+
+//typedef enum command_type {command=0x00, data=0x02} RS;
+enum class command_type {command, data};
+using RS = command_type;
+
+enum class backlight_state {bkOFF, bkON};
+using BLT=backlight_state;
+
+enum class transfer_bit {x4bit,x8bit};  /// DL = data length
+using xBIT = transfer_bit;
 
 struct LCD_properties
 {
     uint8_t rows;
     uint8_t column;
     bool is_color;
+    xBIT DL;
 };
 using LCD = LCD_properties;
 
@@ -31,8 +50,13 @@ class lcddisplay
         void lcd_clear(void);
         void lcd_home(void);
 
-        //int lcd_write(const std::string);
-        //int lcd_write(const char*);
+        int lcd_write(const std::string);
+        int lcd_write(const char*);
+        int lcd_write(char message);
+
+        int hlcd_write(const std::string);
+        int hlcd_write(const char*);
+        int hlcd_write(char message);
 
 		void lcd_bitmap(int);
 		bool load_bmp_bank(uint8_t bank_number);
@@ -52,8 +76,9 @@ class lcddisplay
         bool display(T message);
 
     private:
-        HAL::halLCD* myHAL;
-        //int set_term();
+        //I2CBus* myI2C; /// make this i2c*
+        std::unique_ptr<I2CBus> myI2C;
+        //int set_term(); std::unique_ptr<mcp23008> LCDBus;
         //std::ofstream in;
         uint8_t height, width, cursor_col, cursor_row;
         uint8_t cursor_address;
@@ -62,14 +87,18 @@ class lcddisplay
 		uint8_t B;
 		RGB theColors;
 		LCD properties;
-		char* command_param;
+        uint8_t entry_mode;
+        uint8_t display_control;
+        uint8_t display_shift;
+        uint8_t function_set;
+
 		//bool write_command(char command, int, const char*);
 		//bool write_command(char command, int size=0, const char* buffer=0);
 		bool write_command(char command);
 		bool write_command(char command, int bsize, const std::vector<int> buffer);
 
-        // void lcd_close(void);
-        // int lcd_init(void);
+        void lcd_close(void);
+        void lcd_init(void);
         uint8_t lcd_get_cursor_address(void);
         void lcd_display_on(void);
         void lcd_display_off(void);
@@ -89,6 +118,22 @@ class lcddisplay
         void lcd_send_command(uint8_t command);
         void lcd_send_data(uint8_t data);
 
+        int set_hw_bit(uint8_t state, uint8_t pin_number);
+        void lcd_pulse_enable(void);
+        void lcd_send_byte(uint8_t byte);
+        void lcd_send_byteBITSET(uint8_t b);
+        void lcd_send_byteBITSET(RS cmd, uint8_t b);
+
+        void lcd_set_rs(uint8_t state);
+        void lcd_set_enable(uint8_t state);
+        uint8_t flip1(uint8_t data);
+        //unsigned char flip1(unsigned char x);
+        unsigned char flip2(char a);
+
+        void lcd_send_word(uint8_t b);
+        void lcd_send_command8(uint8_t command);
+        void sleep_ns(long nanoseconds);
+
         // to be done later
         //void lcd_blink_on(void);
         //void lcd_blink_off(void);
@@ -100,14 +145,14 @@ class lcddisplay
     bool lcddisplay::display(T message)
     {
         //std::cout<<message<<std::endl;
-        myHAL->halLCD_write(message);
+        lcd_write(message);
         return true;
     }
 
     template<typename T>
 	int lcddisplay::lcd_write(T message)
 	{
-		myHAL->halLCD_write(message);
+		hlcd_write(message);
 		return 0;
 	}
 
@@ -115,9 +160,7 @@ class lcddisplay
 	template<typename T>
 	lcddisplay& lcddisplay::operator<<(const T& data)
 	{
-        myHAL->halLCD_write(data);
-        //this->lcd_write(data);
-        //myHAL->in << data << std::flush;
+        lcd_write(data);
 	    return *this;
 	}
 

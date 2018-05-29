@@ -1,11 +1,9 @@
 
 #include "mcp23008.h"
 
-mcp23008::mcp23008(unsigned int bus, unsigned int address)  // :I2CBus(bus,address)
+mcp23008::mcp23008()
 {
     mcp23008bus=0;
-    //int readdata = device_read(GPIO);
-    myI2Cbus = new I2CBus(bus,address);
 
     openmcp23008();
 }

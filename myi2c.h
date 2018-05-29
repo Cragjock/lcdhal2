@@ -2,48 +2,6 @@
 #ifndef MY_I2C_H
 #define MY_I2C_H
 
-/************************************************************
-* Adafruit 74HC595 backpack SPI Latch port looks like:
-* +---------+----+----+----+--------------------+
-* | 7       | 6  | 5  | 4  | 3  | 2 | 1  | 0  |
-* +---------+----+----+----+--------------------+
-* | bklight | db4|db5 |db6 |db7 | E | RS | N/A|
-* +---------+----+----+----+--------------------+
-*    NOTE: DB4-7 are in backwards order, need to flip
-
-// ==================================================
-* Adafruit backpack I2C MCP23008 port looks like:
-* +---------+-----+----+----+--------------------+
-* | GP7     | GP6 |GP5 |GP4 |GP3 |GP2 |GP1 |GP0  |
-* +---------+-----+----+----+--------------------+
-* | bklight | db7 |db6 |db5 |db4 | E  | RS | N/A|
-* +---------+-----+----+----+--------------------+
-*
-//=======================================
-* SainSmart I2C PFC8574T port looks like:
-* +-----+-----+----+----+--------------------+
-* | GP7 | GP6 |GP5 |GP4 |GP3 |GP2 |GP1 |GP0  |
-* +-----+-----+----+----+--------------------+
-* | db7 | db6 |db5 |db4 |BKL | E  | RW | RS |
-* +---------+-----+----+----+--------------------+
-*
-//=======================================
-*   PifaceCad SPI MCP23s17
-    PORT A ====
-* +-----+-----+----+----+--------------------+
-* | GP7 | GP6 |GP5 |GP4 |GP3 |GP2 |GP1 |GP0  |
-* +-----+-----+----+----+--------------------+
-* | SWR | SWL |SWctr |SW5 |SW4 |SW3 |SW2|SW1|
-* +---------+-----+----+----+----------------+
-    PORT B =====
-* +-----+-----+----+----+--------------------+
-* | GP7 | GP6 |GP5 |GP4 |GP3 |GP2 |GP1 |GP0  |
-* +-----+-----+----+----+--------------------+
-* | BKL | RS |RW |E |db7 |db6 |db5 | db4 |
-* +---------+-----+----+----+----------------+
-*
-***********************************************************/
-
 #include <iostream>
 #include <iomanip>
 #include <cmath>
@@ -59,9 +17,11 @@
 #include <poll.h>
 #include <signal.h>
 #include <string>
+#include <vector>
 #include <linux/swab.h>     // for swab16 will this work ??
 #include <byteswap.h>       // placeholder to remember for ADS1015 code
-#include "transport.h"      /// for base class
+#include "mcp23008.h"
+
 
 #define swab16 __swab16 // http://lxr.free-electrons.com/source/include/linux/swab.h#L6
 #define LBYTE(LB) (LB & 0x0FF)
@@ -82,21 +42,23 @@
 #define READ_BUF_XL        0x08
 
 
-
-class I2CBus : public Transport
+class I2CBus
 {
-    protected:
+    private:
         unsigned int i2cbus;
         unsigned int i2caddress;
         int ptrfile;
         char busfile[64];
         std::string i2cdev_name;
+        int setup_device();
 
     public:
         I2CBus(unsigned int bus, unsigned int address);
         virtual int openi2c();
         virtual void closei2c();
         virtual ~I2CBus();
+        //mcp23008* LCDBus;
+        std::unique_ptr<mcp23008> LCDBus;
 
         int32_t myI2C_read_byte(int file);
         int myI2C_write_data(int file, uint8_t command_reg, uint8_t data);

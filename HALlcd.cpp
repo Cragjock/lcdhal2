@@ -60,7 +60,8 @@ halLCD::halLCD()
 //	}
 //    in<<"Hello port";
 
-    LCDBus=new mcp23008(1,0x20);
+    //LCDBus=new mcp23008(1,0x20);
+    LCDBus= unique_ptr<mcp23008>(new mcp23008(1,0x20));
 
     function_set = 0;
     entry_mode = 0;
@@ -473,14 +474,14 @@ void halLCD::halLCD_send_data(uint8_t data)
 void halLCD::lcd_send_byte(uint8_t b)
 {
     //uint8_t current_state = myI2C_read_data(I2C_fp, GPIO);
-    uint8_t current_state = LCDBus->myI2Cbus->device_read(GPIO);
+    uint8_t current_state = myI2C->device_read(GPIO);
     current_state &= DATA_MASK; // clear the data bits
 
     //send high nibble (0bXXXX0000)
     uint8_t new_byte = current_state | ((b & 0xf0) >> 1);
     //SPI_write_reg(new_byte, SPI_fd);
     //int res = myI2C_write_data(I2C_fp, GPIO, new_byte);
-    int res = LCDBus->myI2Cbus->device_write(GPIO, new_byte);
+    int res = myI2C->device_write(GPIO, new_byte);
 
 
     //printf("high nibble 0x%x\n", new_byte);
@@ -490,7 +491,7 @@ void halLCD::lcd_send_byte(uint8_t b)
     new_byte = current_state | ((b & 0x0f)<<3);  // set nibble GOOD
     //printf("low nibble 0x%x\n", new_byte);
     //res = myI2C_write_data(I2C_fp, GPIO, new_byte);
-    res = LCDBus->myI2Cbus->device_write(GPIO, new_byte);
+    res = myI2C->device_write(GPIO, new_byte);
     lcd_pulse_enable();
 
 }
@@ -675,4 +676,5 @@ void halLCD::hal_set_color(struct s_myColor theColors)
 	hal_set_color(theColors.cRED, theColors.cGREEN, theColors.cBLUE);
 }
 /******************************/
+
 

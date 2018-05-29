@@ -11,8 +11,9 @@
 #include <iterator>
 #include <chrono>		//chrono::milliseconds(1000); need scope chrono
 #include <thread>		// for chrono sleep this_thread::sleep_for(chrono::seconds(1));
+#include <memory>
 //#include <map>
-//#include <bitset>
+#include <bitset>
 #include <fcntl.h>  /// for set_term
 #include <unistd.h> /// for set_term and sleep
 #include <termios.h> /// for set_term
@@ -21,6 +22,28 @@
 #include "mcp23008.h"
 #include "lcdDefine.h"
 #include "scolors.h"
+
+/// http://web.alfredstate.edu/faculty/weimandn/lcd/lcd_addressing/lcd_addressing_index.html
+
+//typedef enum command_type {command=0x00, data=0x02} RS;
+enum class command_type {command, data};
+using RS = command_type;
+
+enum class backlight_state {bkOFF, bkON};
+using BLT=backlight_state;
+
+enum class transfer_bit {x4bit,x8bit};  /// DL = data length
+using xBIT = transfer_bit;
+
+struct LCD_properties
+{
+    uint8_t rows;
+    uint8_t column;
+    bool is_color;
+    xBIT DL;
+};
+using LCD = LCD_properties;
+
 
 namespace HAL
 {
@@ -62,7 +85,10 @@ class halLCD
         uint8_t display_control;
         uint8_t display_shift;
         uint8_t function_set;
-        mcp23008* LCDBus;
+        //mcp23008* LCDBus;
+        std::unique_ptr<mcp23008> LCDBus;
+
+
 
     public:
 

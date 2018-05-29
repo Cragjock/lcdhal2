@@ -7,7 +7,6 @@
 #include <string>
 #include <stdint.h>
 #include <unistd.h>
-#include "myi2c.h"
 
 
 #define IODIR	0x00
@@ -55,8 +54,7 @@ class mcp23008
         uint8_t GPIO_state;
 
     public:
-        Transport* myI2Cbus;        /// CHECK THIS *****************
-        mcp23008(unsigned int bus, unsigned int address);
+        mcp23008();
         int openmcp23008()const;
         virtual void closemcp23008();
         //virtual int device_read(int reg_address);

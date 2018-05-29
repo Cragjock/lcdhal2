@@ -4,11 +4,10 @@
 using namespace std;
 
 
-//const int myI2C_address[5]= {I2C_SLAVE_ADDR_IMU, 0x1c, 0x5c, 0x5f, 0x6f};
-//static const char * devName = "/dev/i2c-1";
-//static int I2C_Init(const char* devname, int sadrress);
-
 const char * i2cdev[2] = {"/dev/ic2-0","/dev/i2c-1"};
+const string device[] = {"/dev/ic2-0","/dev/i2c-1"};
+vector<string> v_string{"/dev/ic2-0","/dev/i2c-1"};
+
 
 //i2c_smbus_write_block_data(int file, __u8 command, __u8 length, __u8 *values);
 int I2CBus::device_write_block(int reg_request, int rd_size, unsigned char* readbuffer)
@@ -34,18 +33,22 @@ int I2CBus::device_read_block(int reg_request, int rd_size, unsigned char* readb
     return result;
 }
 
-I2CBus::I2CBus(unsigned int bus, unsigned int address) : Transport()
+I2CBus::I2CBus(unsigned int bus, unsigned int address)
 {
 	this->ptrfile=-1;
 	this->i2cbus = bus;
 	this->i2caddress = address;
-	this->i2cdev_name = i2cdev[bus];
+	//this->i2cdev_name = i2cdev[bus];
+	this->i2cdev_name = device[bus];
 	snprintf(busfile, sizeof(busfile), "/dev/i2c-%d", bus);
 	this->openi2c();
     //_i2cbus = bus;
     //_i2caddr = address;
 	//snprintf(busfile, sizeof(busfile), "/dev/i2c-%d", bus);
 	//openfd();
+    //LCDBus=new mcp23008(1,0x20);
+    //LCDBus= unique_ptr<mcp23008>(new mcp23008());
+    setup_device();
 }
 
 void I2CBus::closei2c()
@@ -65,7 +68,8 @@ int I2CBus::openi2c()
     int bus = 1; ///force to /dev/i2c-1
 
     //this->file = ::open(i2cdev[bus], O_RDWR); // do i need ::open ???
-    this->ptrfile = ::open(busfile, O_RDWR);
+    //this->ptrfile = ::open(busfile, O_RDWR);
+    this->ptrfile = ::open(device[1].c_str(), O_RDWR);
     if (this->ptrfile == -1)
         {
             perror(i2cdev[bus]);
@@ -87,7 +91,6 @@ int I2CBus::openi2c()
 	//	syslog(LOG_ERR, "Couldn't open I2C Bus %d [openfd():open %d]", _i2cbus, rrno);}
 	//if (ioctl(fd, I2C_SLAVE, _i2caddr) < 0) {
 	//	syslog(LOG_ERR, "I2C slave %d failed [openfd():ioctl %d]", _i2caddr, errno);}
-
 }
 
 int I2CBus:: device_read(int reg_request)
@@ -145,3 +148,16 @@ int16_t I2CBus::device_read_swap(uint8_t command)
 
         return res_swap;      // return the read data
 }
+
+int I2CBus::setup_device()
+{
+    const uint8_t ioconfig = SEQOP_OFF | DISSLW_OFF | HAEN_ON | ODR_OFF | INTPOL_LOW;
+    int res = device_write(IOCON, ioconfig);
+    res = device_write(IODIR, 0x00);
+    res = device_write(IPOL, 0x00);
+    // disable interrupts and no need for DEFVAL, INTCON
+    res = device_write(GPINTEN, 0x00);  // disable ints
+
+    return 1;
+}
+
