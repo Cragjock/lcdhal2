@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <fstream>
+#include <array>
 #include <vector>
 #include <iterator>
 #include <chrono>		//chrono::milliseconds(1000); need scope chrono
@@ -75,9 +76,14 @@ class lcddisplay
         template<typename T>
         bool display(T message);
 
+
+        std::vector<std::vector<char>> bankX;/// for bitmaps, how do array?
+        std::vector<std::array<char,8>> bank0;
+        std::vector<std::array<char,8>> bank1;
+
     private:
         template<typename T>
-        void lcd_store_custom_bitmap(uint8_t location, T bitmap);
+        void lcd_store_custom_bitmap(uint8_t location, const T bitmap);
 
 
         //I2CBus* myI2C; /// make this i2c*
@@ -170,7 +176,7 @@ class lcddisplay
 	}
 
 	template<typename T>
-	void lcddisplay::lcd_store_custom_bitmap(uint8_t location, T bitmap)
+	void lcddisplay::lcd_store_custom_bitmap(uint8_t location, const T bitmap)
 	{
         //assert(location >=0);
         location &= 0x7; // we only have 8 locations, 0-7

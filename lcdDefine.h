@@ -76,25 +76,29 @@
 
 /*************** bitmap items ********/
 /// need to store in same location as define number
-#define XXXBM 0x08  /// needs to be 8 versus 0 as this fails same result due to 44780 addressing
+
+/// BANK 0
 #define LeftBM 0x01
 #define MiddleBM 0x02
 #define RightBM 0x03
 #define SatLeftBM 0x04
 #define SatRightBM 0x05
-#define HandBM 0x06
-#define CheckBM 0x07
+#define HourGlassEmptyBM 0x06
+#define HourGlassFillingBM 0x07
+#define HourGlassFullBM 0x08    /// needs to be 8 versus 0 as this fails same result due to 44780 addressing
 
+/// BANK 1
 #define ToRightBM  0x01
 #define ToLeftBM 0x02
 #define ToUpBM 0x03
 #define ToDownBM 0x04
+#define PacOpenBM   0x05
+#define PacClosedBM 0x06
+#define HandBM 0x07
+#define CheckBM 0x08  /// needs to be 8 versus 0 as this fails same result due to 44780 addressing
 
-#define PacOpenBM   0x04
-#define PacClosedBM 0x05
-#define HourGlassEmptyBM 0x06
-#define HourGlassFillingBM 0x07
-#define HourGlassFullBM 0x08
+/// BANK 2
+#define XXXBM 0x08  /// needs to be 8 versus 0 as this fails same result due to 44780 addressing
 
 
 #define full 0x01
@@ -117,7 +121,7 @@
 #define DELAY_SETUP_1_NS 5000000L // 5ms
 #define DELAY_SETUP_2_NS 1000000L // 1ms
 
-// Adafruit backpack I2C
+/// Adafruit backpack I2C
 #ifdef MCP23008
 #define PIN_RW 0        // output 0, no connection on 595, grounded on LCD input
 #define PIN_RS 1        // output 1
@@ -129,7 +133,7 @@
 #define PIN_BKL 7       // output 7
 
 #define DATA_MASK 0x87
-#endif // MCP23008
+#endif /// MCP23008
 
 #ifdef ADA595           // Adafruit backpack SPI
 #define PIN_RW 0        // output 0, no connection on 595, grounded on LCD input
@@ -141,7 +145,7 @@
 #define PIN_D4 6        // output 6
 #define PIN_BKL 7       // output 7
 #define DATA_MASK 0x87
-#endif // ADA595
+#endif /// ADA595
 
 #ifdef PFC8574T
 #define PIN_RW 1        // output 0, no connection on 595, grounded on LCD input
@@ -153,7 +157,7 @@
 #define PIN_D4 4        // output 6
 #define PIN_BKL 7       // output 7
 #define DATA_MASK 0x0f
-#endif // PFC8574T
+#endif /// PFC8574T
 
 #ifdef PICADMCP23S17
 #define PIN_RW 0        // output 0, no connection on 595, grounded on LCD input
@@ -165,7 +169,7 @@
 #define PIN_D4 6        // output 6
 #define PIN_BKL 7       // output 7
 #define DATA_MASK 0xf0
-#endif // PICADMCP23S17
+#endif /// PICADMCP23S17
 
 
 #define Bit_Set 1

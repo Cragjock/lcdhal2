@@ -126,7 +126,8 @@ int buf_pitime(char* myrec)
     char rec[256];
 
     int bytesRcvd = recv(d_sock, myrec, 255, 0);
-    //printf("\n=====BYTES is %i \n", bytesRcvd);
+    int rtn_bytesRcvd = bytesRcvd;
+    // printf("\n=====BYTES is %i \n", bytesRcvd);     /// for debug check
     while (bytesRcvd)
     {
         if (bytesRcvd == -1)
@@ -141,7 +142,8 @@ int buf_pitime(char* myrec)
    }
     close(d_sock);
     int sizeit = sizeof(myrec);
-    return sizeit;
+    //return sizeit;
+    return rtn_bytesRcvd;
 }
 
 

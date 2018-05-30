@@ -34,18 +34,27 @@ int main()
 
     LCD LI2C{4,20,false};
     lcddisplay myLCD(LI2C);
-    this_thread::sleep_for(chrono::seconds(3));
+    this_thread::sleep_for(chrono::seconds(1));
 
      /// NIST
     char* NISTbuffer;
 	NISTbuffer = new char[100];
-    buf_pitime(NISTbuffer);
+    int size_test = buf_pitime(NISTbuffer);
+    cout <<"===return size is: "<<size_test<<endl;
+    if(size_test == 0)
+    {
+        myLCD.lcd_write("NIST no data,\nsize is ");
+        myLCD<<size_test;
+        return 0;
+    }
 
     vector<char> vecnist(100);
-	strcpy(&vecnist[0], NISTbuffer);	// STD reference page 278
+	strcpy(&vecnist[0], NISTbuffer);	/// STD reference page 278
 	vecnist.shrink_to_fit();
 
     string mynist(NISTbuffer);
+    cout << "The size of mynist is " << mynist.size() << " bytes.\n";
+
 	string line_1 = mynist.substr(7, 8);
 	string line_2 = mynist.substr(16, 8);
 
@@ -68,7 +77,7 @@ int main()
 	myLCD.lcd_set_cursor_address(0x54);
     sprintf(buf, "%c====== %c =======%c\n",LeftBM, MiddleBM,RightBM);
     myLCD.lcd_write(buf);
-    this_thread::sleep_for(chrono::seconds(3));
+    this_thread::sleep_for(chrono::seconds(2));
     /// end NIST
 
 
@@ -125,6 +134,23 @@ int main()
 	myLCD<<SatLeftBM<<SatRightBM<<LeftBM<<MiddleBM<<RightBM<<HourGlassEmptyBM<<HourGlassFillingBM<<HourGlassFullBM<<"\n";
 
 	this_thread::sleep_for(chrono::seconds(2));
+
+
+    myLCD.lcd_clear();
+    myLCD.lcd_set_cursor_address(0);
+	myLCD<<"load bitmaps 1";
+	myLCD.load_bmp_bank(1);
+	myLCD.lcd_set_cursor_address(0x40);
+	myLCD<<ToRightBM<<ToLeftBM
+        <<ToUpBM<<ToDownBM
+        <<PacOpenBM<<PacClosedBM<<HandBM<<CheckBM;
+	this_thread::sleep_for(chrono::seconds(1));
+	myLCD.load_bmp_bank(0);
+	myLCD.lcd_set_cursor_address(0x54);
+	myLCD<<SatLeftBM<<SatRightBM
+        <<LeftBM<<MiddleBM<<RightBM
+        <<HourGlassEmptyBM<<HourGlassFillingBM<<HourGlassFullBM;
+	this_thread::sleep_for(chrono::seconds(1));
 
     return 0;
 }
