@@ -29,7 +29,7 @@ using namespace std;
     const char alpha[] ={"123456789a123456789b123456789c123456789d123456789e123456789f123456789g123456789h"};
     char buf[80];
 
-int main()
+int main()      /// I2C version
 {
 
     LCD LI2C{4,20,false};
@@ -37,23 +37,31 @@ int main()
     this_thread::sleep_for(chrono::seconds(1));
 
      /// NIST
+    vector<char>vNISTbuffer (100,0);
     char* NISTbuffer;
-	NISTbuffer = new char[100];
-    int size_test = buf_pitime(NISTbuffer);
+	NISTbuffer = new char[100]();       // () sets to all zeros
+    ///int size_test = buf_pitime(NISTbuffer);
+    int size_test = buf_pitime(&vNISTbuffer[0]);
+
     cout <<"===return size is: "<<size_test<<endl;
     if(size_test == 0)
     {
+        cout<<"NIST no data,\nsize is "<<endl;
         myLCD.lcd_write("NIST no data,\nsize is ");
         myLCD<<size_test;
+        this_thread::sleep_for(chrono::seconds(1));
         return 0;
     }
 
-    vector<char> vecnist(100);
-	strcpy(&vecnist[0], NISTbuffer);	/// STD reference page 278
-	vecnist.shrink_to_fit();
+    /// vector<char> vecnist(100,0);
+	/// strcpy(&vecnist[0], NISTbuffer);	/// STD reference page 278
+	/// vecnist.shrink_to_fit();
+	vNISTbuffer.resize(size_test);
+	vNISTbuffer.shrink_to_fit();
 
-    string mynist(NISTbuffer);
-    cout << "The size of mynist is " << mynist.size() << " bytes.\n";
+    // string mynist(NISTbuffer);
+    string mynist(vNISTbuffer.begin(), vNISTbuffer.end());
+    cout << "The size of vNISTbuffer is " << vNISTbuffer.size() << " bytes.\n";
 
 	string line_1 = mynist.substr(7, 8);
 	string line_2 = mynist.substr(16, 8);
